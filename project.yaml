@@ -1,0 +1,25 @@
+version: "3.0"
+
+expectations:
+  population_size: 1000
+
+actions:
+  # These actions are copied-and-pasted into README.md for user-facing documentation.
+  # If you change them here, then please change them there.
+  generate_cohort:
+    run: >
+      cohortextractor:latest generate_cohort
+        --study-definition study_definition
+    outputs:
+      highly_sensitive:
+        cohort: output/input.csv
+
+  generate_dataset_report:
+    run: >
+      python:latest analysis/dataset_report.py
+        --input-files output/input.csv
+        --output-dir output
+    needs: [generate_cohort]
+    outputs:
+      moderately_sensitive:
+        dataset_report: output/input.md

@@ -1,0 +1,8 @@
+[flake8]
+extend-exclude = .direnv,.venv,venv
+ignore =
+    E501
+    W503
+per-file-ignores =
+    analysis/*:INP001
+max-line-length = 88
