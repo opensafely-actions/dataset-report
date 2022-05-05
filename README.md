@@ -25,7 +25,7 @@ generate_cohort:
 ```
 
 Finally, the following dataset-report reusable action generates a report for the dataset.
-Remember to replace `[version]` with a dataset-report version:
+Remember to replace `[version]` with [a dataset-report version][1]:
 
 ```yaml
 generate_dataset_report:
@@ -43,4 +43,5 @@ generate_dataset_report:
 
 Please see [_DEVELOPERS.md_](DEVELOPERS.md).
 
+[1]: https://github.com/opensafely-actions/dataset-report/tags
 [cohort-extractor]: https://docs.opensafely.org/actions-cohortextractor/
