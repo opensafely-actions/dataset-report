@@ -10,7 +10,7 @@ def get_extension(path):
 
 
 def get_name(path):
-    return path.name.rstrip(get_extension(path))
+    return path.name.split(".")[0]
 
 
 def read_dataframe(path):
