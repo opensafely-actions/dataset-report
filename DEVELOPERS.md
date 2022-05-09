@@ -78,7 +78,7 @@ Notice, however, that there are two sets of requirements files within this reusa
 
 ## Tagging a new version
 
-This reusable action follows [Semantic Versioning, v2.0.0]().
+This reusable action follows [Semantic Versioning, v2.0.0][2].
 
 A new __patch__ version is automatically tagged when a group of commits is pushed to the `main` branch;
 for example, when a group that comprises a pull request is merged.
