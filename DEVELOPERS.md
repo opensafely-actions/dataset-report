@@ -52,6 +52,30 @@ Then, iteratively:
 
 Finally, push the branch to GitHub and open a pull request against the `main` branch.
 
+### Environments
+
+A reusable action is run within a container,
+which is created from a image,
+which in turn is created from a repository.
+As this is a Python reusable action, it is run within a Python container,
+which is created from a Python image,
+which in turn is created from the [opensafely-core/python-docker][] repository.
+
+The Python container provides the reusable action with its production environment.
+From a developer's perspective, the most important characteristic of the production environment is that it contains __Python 3.8__.
+The next most important characteristic is that it contains the versions of the packages listed in [_requirements.txt_][3] from the opensafely-core/python-docker repository.
+
+Notice, however, that there are two sets of requirements files within this reusable action's repository:
+
+* The versions of the packages listed in _requirements.prod.in_ are for local development
+  and should mirror the production environment.
+  In other words,
+  the versions of the packages listed in _requirements.prod.in_
+  should mirror the versions of the packages listed in _requirements.txt_ from the opensafely-core/python-docker repository.
+
+* The versions of the packages listed in _requirements.dev.in_ are for local development
+  and need not mirror the production environment.
+
 ## Tagging a new version
 
 This reusable action follows [Semantic Versioning, v2.0.0]().
@@ -85,3 +109,5 @@ Whilst there are other prefixes besides `fix` and `feat`, they do not tag new ve
 
 [1]: https://github.com/casey/just/
 [2]: https://semver.org/spec/v2.0.0.html
+[3]: https://github.com/opensafely-core/python-docker/blob/main/requirements.txt
+[opensafely-core/python-docker]: https://github.com/opensafely-core/python-docker
