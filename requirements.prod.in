@@ -3,6 +3,8 @@
 # To generate requirements file, run:
 # pip-compile --generate-hashes --output-file=requirements.prod.txt requirements.prod.in
 
+jinja2==2.11.1
+markupsafe==1.1.1
 numpy==1.18.1
 pandas==1.0.1
 pyarrow==3.0.0
