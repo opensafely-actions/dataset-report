@@ -19,8 +19,8 @@ def finalize(value):
 
 
 @finalize.register
-def _(value: pandas.Series):
-    return value.to_frame().to_html()
+def _(value: pandas.DataFrame):
+    return value.to_html()
 
 
 ENVIRONMENT = jinja2.Environment(
@@ -74,8 +74,15 @@ def get_data_types(dataframe):
     return dtypes
 
 
-def get_dataset_report(input_file, memory_usage):
-    return TEMPLATE.render(input_file=input_file, memory_usage=memory_usage)
+def get_summary(dataframe):
+    memory_usage = get_memory_usage(dataframe)
+    data_types = get_data_types(dataframe)
+    summary = memory_usage.to_frame().join(data_types)
+    return summary
+
+
+def get_dataset_report(input_file, summary):
+    return TEMPLATE.render(input_file=input_file, summary=summary)
 
 
 def write_dataset_report(output_file, dataset_report):
@@ -90,10 +97,10 @@ def main():
 
     for input_file in input_files:
         input_dataframe = read_dataframe(input_file)
-        memory_usage = get_memory_usage(input_dataframe)
+        summary = get_summary(input_dataframe)
 
         output_file = output_dir / f"{get_name(input_file)}.html"
-        dataset_report = get_dataset_report(input_file, memory_usage)
+        dataset_report = get_dataset_report(input_file, summary)
         write_dataset_report(output_file, dataset_report)
 
 
