@@ -66,6 +66,14 @@ def get_memory_usage(dataframe):
     return memory_usage
 
 
+def get_data_types(dataframe):
+    dtypes = dataframe.dtypes
+    dtypes.name = "Data Type"
+    dtypes.index = dtypes.index.copy()
+    dtypes.index.name = "Column Name"
+    return dtypes
+
+
 def get_dataset_report(input_file, memory_usage):
     return TEMPLATE.render(input_file=input_file, memory_usage=memory_usage)
 
