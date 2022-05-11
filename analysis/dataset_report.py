@@ -71,6 +71,20 @@ def write_dataset_report(output_file, dataset_report):
         f.write(dataset_report)
 
 
+def main():
+    args = parse_args()
+    input_files = args.input_files
+    output_dir = args.output_dir
+
+    for input_file in input_files:
+        input_dataframe = read_dataframe(input_file)
+        memory_usage = get_memory_usage(input_dataframe)
+
+        output_file = output_dir / f"{get_name(input_file)}.html"
+        dataset_report = get_dataset_report(input_file, memory_usage)
+        write_dataset_report(output_file, dataset_report)
+
+
 # Argument parsing
 # ----------------
 
@@ -98,24 +112,6 @@ def parse_args():
         help="Path to the output directory",
     )
     return parser.parse_args()
-
-
-# Application
-# -----------
-
-
-def main():
-    args = parse_args()
-    input_files = args.input_files
-    output_dir = args.output_dir
-
-    for input_file in input_files:
-        input_dataframe = read_dataframe(input_file)
-        memory_usage = get_memory_usage(input_dataframe)
-
-        output_file = output_dir / f"{get_name(input_file)}.html"
-        dataset_report = get_dataset_report(input_file, memory_usage)
-        write_dataset_report(output_file, dataset_report)
 
 
 if __name__ == "__main__":
