@@ -33,10 +33,7 @@ def test_get_name(path, name):
     assert dataset_report.get_name(path) == name
 
 
-@pytest.mark.xfail(
-    reason="The argument and the return value share an index instance",
-    strict=True,
-)
 def test_get_memory_usage(dataframe):
+    # Test that the argument and the return value do not share an index instance.
     memory_usage = dataset_report.get_memory_usage(dataframe)
     assert dataframe.columns is not memory_usage.index

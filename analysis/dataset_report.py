@@ -58,6 +58,10 @@ def get_memory_usage(dataframe):
     memory_usage = dataframe.memory_usage(index=False)
     memory_usage = memory_usage / 1_000**2
     memory_usage.name = "Size (MB)"
+    # At this point, `dataframe.columns` is the same instance as `memory_usage.index`.
+    # Consequently, if we change the name of the latter, then we will also change the
+    # name of the former. This is undesirable, so we copy `memory_usage.index`.
+    memory_usage.index = memory_usage.index.copy()
     memory_usage.index.name = "Column Name"
     return memory_usage
 
