@@ -36,7 +36,7 @@ generate_dataset_report:
   needs: [generate_cohort]
   outputs:
     moderately_sensitive:
-      dataset_report: output/input.md
+      dataset_report: output/input.html
 ```
 
 ## Notes for developers

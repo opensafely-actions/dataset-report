@@ -1,8 +1,37 @@
 import argparse
+import functools
 import glob
 import pathlib
 
+import jinja2
 import pandas
+
+
+# Template
+# --------
+
+
+@functools.singledispatch
+def finalize(value):
+    """Processes the value of a template variable before it is rendered."""
+    # This is the default "do nothing" path.
+    return value
+
+
+@finalize.register
+def _(value: pandas.Series):
+    return value.to_frame().to_html()
+
+
+ENVIRONMENT = jinja2.Environment(
+    loader=jinja2.FileSystemLoader("analysis/templates"),
+    finalize=finalize,
+)
+TEMPLATE = ENVIRONMENT.get_template("dataset_report.html")
+
+
+# Application
+# -----------
 
 
 def get_extension(path):
@@ -33,8 +62,17 @@ def get_memory_usage(dataframe):
     return memory_usage
 
 
-def to_markdown(dataframe):
-    return dataframe.to_markdown()
+def get_dataset_report(input_file, memory_usage):
+    return TEMPLATE.render(input_file=input_file, memory_usage=memory_usage)
+
+
+def write_dataset_report(output_file, dataset_report):
+    with output_file.open("w", encoding="utf-8") as f:
+        f.write(dataset_report)
+
+
+# Argument parsing
+# ----------------
 
 
 def get_path(*args):
@@ -62,6 +100,10 @@ def parse_args():
     return parser.parse_args()
 
 
+# Application
+# -----------
+
+
 def main():
     args = parse_args()
     input_files = args.input_files
@@ -71,12 +113,9 @@ def main():
         input_dataframe = read_dataframe(input_file)
         memory_usage = get_memory_usage(input_dataframe)
 
-        output_file = output_dir / f"{get_name(input_file)}.md"
-        with output_file.open("w", encoding="utf-8") as f:
-            f.write("# Dataset Report\n\n")
-            f.write(f"*{input_file}*\n\n")
-            f.write("## Memory Usage\n\n")
-            f.write(to_markdown(memory_usage))
+        output_file = output_dir / f"{get_name(input_file)}.html"
+        dataset_report = get_dataset_report(input_file, memory_usage)
+        write_dataset_report(output_file, dataset_report)
 
 
 if __name__ == "__main__":
