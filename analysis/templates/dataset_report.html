@@ -13,6 +13,12 @@
         <p><em>{{ input_file }}</em></p>
         <h2>Summary</h2>
         {{ summary }}
+        <h2>Columns</h2>
+        <p>Only columns that dataset-report can summarize are shown.</p>
+        {% for column_name, column_summary in column_summaries %}
+        <h3>{{ column_name }}</h3>
+        <p>{{ column_summary }}</p>
+        {% endfor %}
     </article>
 </body>
 
