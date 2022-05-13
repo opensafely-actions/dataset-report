@@ -81,8 +81,33 @@ def get_summary(dataframe):
     return summary
 
 
-def get_dataset_report(input_file, summary):
-    return TEMPLATE.render(input_file=input_file, summary=summary)
+def is_boolean(series):
+    """Does series contain boolean values?
+
+    Because series may have been read from an untyped file, such as a csv file, it may
+    contain boolean values but may not have a boolean data type.
+    """
+    series = series.dropna()
+    return ((series == 0) | (series == 1)).all()
+
+
+def get_column_summaries(dataframe):
+    for name, series in dataframe.items():
+        if name == "patient_id":
+            continue
+
+        if is_boolean(series):
+            count = series.value_counts()
+            percentage = count / count.sum() * 100
+            summary = pandas.DataFrame({"Count": count, "Percentage": percentage})
+            summary.index.name = "Column Value"
+            yield name, summary
+
+
+def get_dataset_report(input_file, summary, column_summaries):
+    return TEMPLATE.render(
+        input_file=input_file, summary=summary, column_summaries=column_summaries
+    )
 
 
 def write_dataset_report(output_file, dataset_report):
@@ -98,9 +123,10 @@ def main():
     for input_file in input_files:
         input_dataframe = read_dataframe(input_file)
         summary = get_summary(input_dataframe)
+        column_summaries = get_column_summaries(input_dataframe)
 
         output_file = output_dir / f"{get_name(input_file)}.html"
-        dataset_report = get_dataset_report(input_file, summary)
+        dataset_report = get_dataset_report(input_file, summary, column_summaries)
         write_dataset_report(output_file, dataset_report)
 
 
