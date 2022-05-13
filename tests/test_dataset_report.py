@@ -35,19 +35,6 @@ def test_get_name(path, name):
     assert dataset_report.get_name(path) == name
 
 
-@pytest.mark.parametrize(
-    "summary_function",
-    [
-        dataset_report.get_memory_usage,
-        dataset_report.get_data_types,
-    ],
-)
-def test_summary_function(summary_function, dataframe):
-    # Test that the argument and the return value do not share an index instance.
-    summary = summary_function(dataframe)
-    assert dataframe.columns is not summary.index
-
-
 class TestIsBool:
     def test_with_boolean(self):
         assert dataset_report.is_boolean(pandas.Series([0, 1], dtype=int))

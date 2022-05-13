@@ -45,40 +45,23 @@ def get_name(path):
 def read_dataframe(path):
     ext = get_extension(path)
     if ext == ".csv" or ext == ".csv.gz":
-        return pandas.read_csv(path)
+        dataframe = pandas.read_csv(path)
     elif ext == ".feather":
-        return pandas.read_feather(path)
+        dataframe = pandas.read_feather(path)
     elif ext == ".dta" or ext == ".dta.gz":
-        return pandas.read_stata(path)
+        dataframe = pandas.read_stata(path)
     else:
         raise ValueError(f"Cannot read '{ext}' files")
+    # We give the column index a name now, because it's preserved when summaries are
+    # computed later.
+    dataframe.columns.name = "Column Name"
+    return dataframe
 
 
-def get_memory_usage(dataframe):
+def get_table_summary(dataframe):
     memory_usage = dataframe.memory_usage(index=False)
     memory_usage = memory_usage / 1_000**2
-    memory_usage.name = "Size (MB)"
-    # At this point, `dataframe.columns` is the same instance as `memory_usage.index`.
-    # Consequently, if we change the name of the latter, then we will also change the
-    # name of the former. This is undesirable, so we copy `memory_usage.index`.
-    memory_usage.index = memory_usage.index.copy()
-    memory_usage.index.name = "Column Name"
-    return memory_usage
-
-
-def get_data_types(dataframe):
-    dtypes = dataframe.dtypes
-    dtypes.name = "Data Type"
-    dtypes.index = dtypes.index.copy()
-    dtypes.index.name = "Column Name"
-    return dtypes
-
-
-def get_summary(dataframe):
-    memory_usage = get_memory_usage(dataframe)
-    data_types = get_data_types(dataframe)
-    summary = memory_usage.to_frame().join(data_types)
-    return summary
+    return pandas.DataFrame({"Size (MB)": memory_usage, "Data Type": dataframe.dtypes})
 
 
 def is_boolean(series):
@@ -104,9 +87,11 @@ def get_column_summaries(dataframe):
             yield name, summary
 
 
-def get_dataset_report(input_file, summary, column_summaries):
+def get_dataset_report(input_file, table_summary, column_summaries):
     return TEMPLATE.render(
-        input_file=input_file, summary=summary, column_summaries=column_summaries
+        input_file=input_file,
+        table_summary=table_summary,
+        column_summaries=column_summaries,
     )
 
 
@@ -122,11 +107,11 @@ def main():
 
     for input_file in input_files:
         input_dataframe = read_dataframe(input_file)
-        summary = get_summary(input_dataframe)
+        table_summary = get_table_summary(input_dataframe)
         column_summaries = get_column_summaries(input_dataframe)
 
         output_file = output_dir / f"{get_name(input_file)}.html"
-        dataset_report = get_dataset_report(input_file, summary, column_summaries)
+        dataset_report = get_dataset_report(input_file, table_summary, column_summaries)
         write_dataset_report(output_file, dataset_report)
 
 
