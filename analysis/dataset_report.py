@@ -81,6 +81,16 @@ def get_summary(dataframe):
     return summary
 
 
+def is_boolean(series):
+    """Does series contain boolean values?
+
+    Because series may have been read from an untyped file, such as a csv file, it may
+    contain boolean values but may not have a boolean data type.
+    """
+    series = series.dropna()
+    return ((series == 0) | (series == 1)).all()
+
+
 def get_dataset_report(input_file, summary):
     return TEMPLATE.render(input_file=input_file, summary=summary)
 
