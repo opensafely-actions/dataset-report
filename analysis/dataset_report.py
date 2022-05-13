@@ -58,24 +58,10 @@ def read_dataframe(path):
     return dataframe
 
 
-def get_memory_usage(dataframe):
+def get_table_summary(dataframe):
     memory_usage = dataframe.memory_usage(index=False)
     memory_usage = memory_usage / 1_000**2
-    memory_usage.name = "Size (MB)"
-    return memory_usage
-
-
-def get_data_types(dataframe):
-    dtypes = dataframe.dtypes
-    dtypes.name = "Data Type"
-    return dtypes
-
-
-def get_table_summary(dataframe):
-    memory_usage = get_memory_usage(dataframe)
-    data_types = get_data_types(dataframe)
-    summary = memory_usage.to_frame().join(data_types)
-    return summary
+    return pandas.DataFrame({"Size (MB)": memory_usage, "Data Type": dataframe.dtypes})
 
 
 def is_boolean(series):
