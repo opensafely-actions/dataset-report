@@ -12,7 +12,7 @@
         <h1>Dataset Report</h1>
         <p><em>{{ input_file }}</em></p>
         <h2>Summary</h2>
-        {{ summary }}
+        {{ table_summary }}
         <h2>Columns</h2>
         <p>Only columns that dataset-report can summarize are shown.</p>
         {% for column_name, column_summary in column_summaries %}

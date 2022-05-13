@@ -71,7 +71,7 @@ def get_data_types(dataframe):
     return dtypes
 
 
-def get_summary(dataframe):
+def get_table_summary(dataframe):
     memory_usage = get_memory_usage(dataframe)
     data_types = get_data_types(dataframe)
     summary = memory_usage.to_frame().join(data_types)
@@ -101,9 +101,11 @@ def get_column_summaries(dataframe):
             yield name, summary
 
 
-def get_dataset_report(input_file, summary, column_summaries):
+def get_dataset_report(input_file, table_summary, column_summaries):
     return TEMPLATE.render(
-        input_file=input_file, summary=summary, column_summaries=column_summaries
+        input_file=input_file,
+        table_summary=table_summary,
+        column_summaries=column_summaries,
     )
 
 
@@ -119,11 +121,11 @@ def main():
 
     for input_file in input_files:
         input_dataframe = read_dataframe(input_file)
-        summary = get_summary(input_dataframe)
+        table_summary = get_table_summary(input_dataframe)
         column_summaries = get_column_summaries(input_dataframe)
 
         output_file = output_dir / f"{get_name(input_file)}.html"
-        dataset_report = get_dataset_report(input_file, summary, column_summaries)
+        dataset_report = get_dataset_report(input_file, table_summary, column_summaries)
         write_dataset_report(output_file, dataset_report)
 
 
