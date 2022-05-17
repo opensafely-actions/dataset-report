@@ -43,6 +43,10 @@ class TestIsBoolean:
             ([0, 1], float),
             ([numpy.nan, 1], float),
             ([False, True], bool),
+            # We have no way of knowing whether the following series should contain
+            # boolean values when it only contains missing values. However, the
+            # distinction doesn't matter in practice.
+            ([numpy.nan, numpy.nan], float),
         ],
     )
     def test_with_boolean_values(self, data, dtype):
