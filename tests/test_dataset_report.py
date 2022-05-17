@@ -1,5 +1,5 @@
-import datetime
 import pathlib
+from datetime import datetime
 
 import numpy
 import pandas
@@ -55,13 +55,7 @@ class TestIsBoolean:
             ([0.1, 0.2], float),
             ([numpy.nan, 2], float),
             (["0", "1"], str),
-            (
-                [
-                    datetime.datetime(2022, 1, 1),
-                    datetime.datetime(2022, 1, 2),
-                ],
-                "datetime64[ns]",
-            ),
+            ([datetime(2022, 1, 1), datetime(2022, 1, 2)], "datetime64[ns]"),
         ],
     )
     def test_with_non_boolean_values(self, data, dtype):
