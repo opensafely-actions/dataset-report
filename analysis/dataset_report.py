@@ -5,6 +5,7 @@ import pathlib
 
 import jinja2
 import pandas
+from pandas.api import types
 
 
 # Template
@@ -70,6 +71,8 @@ def is_boolean(series):
     Because series may have been read from an untyped file, such as a csv file, it may
     contain boolean values but may not have a boolean data type.
     """
+    if not (types.is_bool_dtype(series) or types.is_numeric_dtype(series)):
+        return False
     series = series.dropna()
     return ((series == 0) | (series == 1)).all()
 
