@@ -36,23 +36,33 @@ def test_get_name(path, name):
 
 
 class TestIsBoolean:
-    def test_with_boolean_values(self):
-        assert dataset_report.is_boolean(pandas.Series([0, 1], dtype=int))
-        assert dataset_report.is_boolean(pandas.Series([0, 1], dtype=float))
-        assert dataset_report.is_boolean(pandas.Series([numpy.nan, 1], dtype=float))
-        assert dataset_report.is_boolean(pandas.Series([False, True], dtype=bool))
+    @pytest.mark.parametrize(
+        "data,dtype",
+        [
+            ([0, 1], int),
+            ([0, 1], float),
+            ([numpy.nan, 1], float),
+            ([False, True], bool),
+        ],
+    )
+    def test_with_boolean_values(self, data, dtype):
+        assert dataset_report.is_boolean(pandas.Series(data, dtype=dtype))
 
-    def test_with_non_boolean_values(self):
-        assert not dataset_report.is_boolean(pandas.Series([0, 2], dtype=int))
-        assert not dataset_report.is_boolean(pandas.Series([0.1, 0.2], dtype=float))
-        assert not dataset_report.is_boolean(pandas.Series([numpy.nan, 2], dtype=float))
-        assert not dataset_report.is_boolean(pandas.Series(["0", "1"], dtype=str))
-        assert not dataset_report.is_boolean(
-            pandas.Series(
+    @pytest.mark.parametrize(
+        "data,dtype",
+        [
+            ([0, 2], int),
+            ([0.1, 0.2], float),
+            ([numpy.nan, 2], float),
+            (["0", "1"], str),
+            (
                 [
                     datetime.datetime(2022, 1, 1),
                     datetime.datetime(2022, 1, 2),
                 ],
-                dtype="datetime64[ns]",
-            )
-        )
+                "datetime64[ns]",
+            ),
+        ],
+    )
+    def test_with_non_boolean_values(self, data, dtype):
+        assert not dataset_report.is_boolean(pandas.Series(data, dtype=dtype))
