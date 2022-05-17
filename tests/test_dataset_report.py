@@ -60,10 +60,12 @@ class TestIsBoolean:
             ([numpy.nan, 2], float),
             (["0", "1"], str),
             ([datetime(2022, 1, 1), datetime(2022, 1, 2)], "datetime64[ns]"),
+            (["0", "1"], "category"),
             # We know the following series won't contain boolean values when they only
             # contain missing values: their types tell us.
             ([numpy.nan, numpy.nan], str),
             ([numpy.nan, numpy.nan], "datetime64[ns]"),
+            ([numpy.nan, numpy.nan], "category"),
         ],
     )
     def test_with_non_boolean_values(self, data, dtype):
