@@ -1,5 +1,5 @@
-import datetime
 import pathlib
+from datetime import datetime
 
 import numpy
 import pandas
@@ -35,24 +35,38 @@ def test_get_name(path, name):
     assert dataset_report.get_name(path) == name
 
 
-class TestIsBool:
-    def test_with_boolean(self):
-        assert dataset_report.is_boolean(pandas.Series([0, 1], dtype=int))
-        assert dataset_report.is_boolean(pandas.Series([0, 1], dtype=float))
-        assert dataset_report.is_boolean(pandas.Series([numpy.nan, 1], dtype=float))
-        assert dataset_report.is_boolean(pandas.Series([False, True], dtype=bool))
+class TestIsBoolean:
+    @pytest.mark.parametrize(
+        "data,dtype",
+        [
+            ([0, 1], int),
+            ([0, 1], float),
+            ([numpy.nan, 1], float),
+            ([False, True], bool),
+            # We have no way of knowing whether the following series should contain
+            # boolean values when it only contains missing values. However, the
+            # distinction doesn't matter in practice.
+            ([numpy.nan, numpy.nan], float),
+        ],
+    )
+    def test_with_boolean_values(self, data, dtype):
+        assert dataset_report.is_boolean(pandas.Series(data, dtype=dtype))
 
-    def test_with_non_boolean(self):
-        assert not dataset_report.is_boolean(pandas.Series([0, 2], dtype=int))
-        assert not dataset_report.is_boolean(pandas.Series([0.1, 0.2], dtype=float))
-        assert not dataset_report.is_boolean(pandas.Series([numpy.nan, 2], dtype=float))
-        assert not dataset_report.is_boolean(pandas.Series(["0", "1"], dtype=str))
-        assert not dataset_report.is_boolean(
-            pandas.Series(
-                [
-                    datetime.datetime(2022, 1, 1),
-                    datetime.datetime(2022, 1, 2),
-                ],
-                dtype="datetime64[ns]",
-            )
-        )
+    @pytest.mark.parametrize(
+        "data,dtype",
+        [
+            ([0, 2], int),
+            ([0.1, 0.2], float),
+            ([numpy.nan, 2], float),
+            (["0", "1"], str),
+            ([datetime(2022, 1, 1), datetime(2022, 1, 2)], "datetime64[ns]"),
+            (["0", "1"], "category"),
+            # We know the following series won't contain boolean values when they only
+            # contain missing values: their types tell us.
+            ([numpy.nan, numpy.nan], str),
+            ([numpy.nan, numpy.nan], "datetime64[ns]"),
+            ([numpy.nan, numpy.nan], "category"),
+        ],
+    )
+    def test_with_non_boolean_values(self, data, dtype):
+        assert not dataset_report.is_boolean(pandas.Series(data, dtype=dtype))
