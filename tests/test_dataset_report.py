@@ -35,7 +35,7 @@ def test_get_name(path, name):
     assert dataset_report.get_name(path) == name
 
 
-class TestIsBool:
+class TestIsBoolean:
     def test_with_boolean(self):
         assert dataset_report.is_boolean(pandas.Series([0, 1], dtype=int))
         assert dataset_report.is_boolean(pandas.Series([0, 1], dtype=float))
