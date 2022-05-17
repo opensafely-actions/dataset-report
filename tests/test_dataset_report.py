@@ -36,13 +36,13 @@ def test_get_name(path, name):
 
 
 class TestIsBoolean:
-    def test_with_boolean(self):
+    def test_with_boolean_values(self):
         assert dataset_report.is_boolean(pandas.Series([0, 1], dtype=int))
         assert dataset_report.is_boolean(pandas.Series([0, 1], dtype=float))
         assert dataset_report.is_boolean(pandas.Series([numpy.nan, 1], dtype=float))
         assert dataset_report.is_boolean(pandas.Series([False, True], dtype=bool))
 
-    def test_with_non_boolean(self):
+    def test_with_non_boolean_values(self):
         assert not dataset_report.is_boolean(pandas.Series([0, 2], dtype=int))
         assert not dataset_report.is_boolean(pandas.Series([0.1, 0.2], dtype=float))
         assert not dataset_report.is_boolean(pandas.Series([numpy.nan, 2], dtype=float))
