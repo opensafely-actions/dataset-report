@@ -92,7 +92,7 @@ def get_column_summaries(dataframe):
             continue
 
         if is_boolean(series):
-            count = series.value_counts()
+            count = series.value_counts(dropna=False)
             percentage = count / count.sum() * 100
             summary = pandas.DataFrame({"Count": count, "Percentage": percentage})
             summary.index.name = "Column Value"
