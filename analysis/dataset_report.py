@@ -62,7 +62,16 @@ def read_dataframe(path):
 def get_table_summary(dataframe):
     memory_usage = dataframe.memory_usage(index=False)
     memory_usage = memory_usage / 1_000**2
-    return pandas.DataFrame({"Size (MB)": memory_usage, "Data Type": dataframe.dtypes})
+    count_na = len(dataframe) - dataframe.count()
+    percentage_na = count_na / len(dataframe) * 100
+    return pandas.DataFrame(
+        {
+            "Size (MB)": memory_usage,
+            "Data Type": dataframe.dtypes,
+            "Count of missing values": count_na,
+            "Percentage of missing values": percentage_na,
+        },
+    )
 
 
 def is_boolean(series):

@@ -4,21 +4,9 @@ from datetime import datetime
 import numpy
 import pandas
 import pytest
+from pandas import testing
 
 from analysis import dataset_report
-
-
-@pytest.fixture
-def dataframe():
-    return pandas.DataFrame(
-        {
-            "patient_id": [1],
-            "is_registered": [True],
-            "is_dead": [False],
-            "stp_code": ["STP0"],
-            "has_sbp_event": [True],
-        }
-    )
 
 
 @pytest.mark.parametrize(
@@ -33,6 +21,36 @@ def dataframe():
 )
 def test_get_name(path, name):
     assert dataset_report.get_name(path) == name
+
+
+def test_get_table_summary():
+    # arrange
+    dataframe = pandas.DataFrame(
+        {
+            "patient_id": pandas.Series([1, 2, 3, 4], dtype=int),
+            "is_registered": pandas.Series([1, 0, numpy.nan, numpy.nan], dtype=float),
+        },
+    )
+    # act
+    obs_table_summary = dataset_report.get_table_summary(dataframe)
+    # assert
+    del obs_table_summary["Size (MB)"]  # don't test
+    del obs_table_summary["Data Type"]  # don't test
+    exp_table_summary = pandas.DataFrame(
+        {
+            "Count of missing values": pandas.Series(
+                [0, 2],
+                index=dataframe.columns,
+                dtype=int,
+            ),
+            "Percentage of missing values": pandas.Series(
+                [0, 50],
+                index=dataframe.columns,
+                dtype=float,
+            ),
+        }
+    )
+    testing.assert_frame_equal(obs_table_summary, exp_table_summary)
 
 
 class TestIsBoolean:
