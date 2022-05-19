@@ -53,6 +53,30 @@ def test_get_table_summary():
     testing.assert_frame_equal(obs_table_summary, exp_table_summary)
 
 
+def test_get_column_summaries():
+    # arrange
+    dataframe = pandas.DataFrame(
+        {
+            "patient_id": pandas.Series([1, 2, 3, 4], dtype=int),
+            "is_registered": pandas.Series([1, 0, numpy.nan, numpy.nan], dtype=float),
+        },
+    )
+    # act
+    obs_column_summaries = list(dataset_report.get_column_summaries(dataframe))
+    # assert
+    assert len(obs_column_summaries) == 1
+    obs_name, obs_summary = obs_column_summaries[0]
+    assert obs_name == "is_registered"
+    exp_index = pandas.Index([numpy.nan, 0, 1], dtype=float, name="Column Value")
+    exp_summary = pandas.DataFrame(
+        {
+            "Count": pandas.Series([2, 1, 1], index=exp_index, dtype=int),
+            "Percentage": pandas.Series([50, 25, 25], index=exp_index, dtype=float),
+        }
+    )
+    testing.assert_frame_equal(obs_summary, exp_summary)
+
+
 class TestIsBoolean:
     @pytest.mark.parametrize(
         "data,dtype",
