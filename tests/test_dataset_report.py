@@ -53,6 +53,16 @@ def test_get_table_summary():
     testing.assert_frame_equal(obs_table_summary, exp_table_summary)
 
 
+def test_count_values():
+    # arrange
+    series = pandas.Series([1, 0, numpy.nan, numpy.nan], dtype=float)
+    # act
+    obs_count = dataset_report.count_values(series)
+    # assert
+    exp_count = pandas.Series([2, 1, 1], index=[numpy.nan, 0, 1], dtype=int)
+    testing.assert_series_equal(obs_count, exp_count)
+
+
 def test_get_column_summaries():
     # arrange
     dataframe = pandas.DataFrame(

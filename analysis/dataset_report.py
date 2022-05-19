@@ -86,13 +86,17 @@ def is_boolean(series):
     return ((series == 0) | (series == 1)).all()
 
 
+def count_values(series):
+    return series.value_counts(dropna=False)
+
+
 def get_column_summaries(dataframe):
     for name, series in dataframe.items():
         if name == "patient_id":
             continue
 
         if is_boolean(series):
-            count = series.value_counts(dropna=False)
+            count = count_values(series)
             percentage = count / count.sum() * 100
             summary = pandas.DataFrame({"Count": count, "Percentage": percentage})
             summary.index.name = "Column Value"
