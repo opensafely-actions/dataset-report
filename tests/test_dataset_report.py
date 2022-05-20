@@ -55,11 +55,18 @@ def test_get_table_summary():
 
 def test_count_values():
     # arrange
-    series = pandas.Series([1, 0, numpy.nan, numpy.nan], dtype=float)
+    # value of 0:   there are 5, not rounded, suppressed
+    # value of 1:   there are 6, rounded down to 5, suppressed
+    # value of nan: there are 8, rounded up to 10, not suppressed
+    series = pandas.Series([0] * 5 + [1] * 6 + [numpy.nan] * 8, dtype=float)
     # act
-    obs_count = dataset_report.count_values(series)
+    obs_count = dataset_report.count_values(series, base=5, threshold=5)
     # assert
-    exp_count = pandas.Series([2, 1, 1], index=[numpy.nan, 0, 1], dtype=int)
+    exp_count = pandas.Series(
+        [10, numpy.nan, numpy.nan],
+        index=[numpy.nan, 0, 1],  # value of nan should be sorted first
+        dtype=float,
+    )
     testing.assert_series_equal(obs_count, exp_count)
 
 
@@ -67,8 +74,9 @@ def test_get_column_summaries():
     # arrange
     dataframe = pandas.DataFrame(
         {
-            "patient_id": pandas.Series([1, 2, 3, 4], dtype=int),
-            "is_registered": pandas.Series([1, 0, numpy.nan, numpy.nan], dtype=float),
+            # won't be suppressed
+            "patient_id": pandas.Series(range(8), dtype=int),
+            "is_registered": pandas.Series([1] * 8, dtype=int),
         },
     )
     # act
@@ -77,11 +85,12 @@ def test_get_column_summaries():
     assert len(obs_column_summaries) == 1
     obs_name, obs_summary = obs_column_summaries[0]
     assert obs_name == "is_registered"
-    exp_index = pandas.Index([numpy.nan, 0, 1], dtype=float, name="Column Value")
+    exp_index = pandas.Index([1], dtype=int, name="Column Value")
     exp_summary = pandas.DataFrame(
         {
-            "Count": pandas.Series([2, 1, 1], index=exp_index, dtype=int),
-            "Percentage": pandas.Series([50, 25, 25], index=exp_index, dtype=float),
+            # will be rounded
+            "Count": pandas.Series([10], index=exp_index, dtype=int),
+            "Percentage": pandas.Series([100], index=exp_index, dtype=float),
         }
     )
     testing.assert_frame_equal(obs_summary, exp_summary)

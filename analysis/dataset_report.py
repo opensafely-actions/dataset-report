@@ -4,6 +4,7 @@ import glob
 import pathlib
 
 import jinja2
+import numpy
 import pandas
 from pandas.api import types
 
@@ -86,8 +87,34 @@ def is_boolean(series):
     return ((series == 0) | (series == 1)).all()
 
 
-def count_values(series):
-    return series.value_counts(dropna=False)
+def round_to_nearest(series, base):
+    """Rounds values in series to the nearest base."""
+    # ndigits=0 ensures the return value is a whole number, but with the same type as x
+    series_copy = series.apply(lambda x: base * round(x / base, ndigits=0))
+    try:
+        return series_copy.astype(int)
+    except ValueError:
+        # series contained nan
+        return series_copy
+
+
+def suppress(series, threshold):
+    """Replaces values in series less than or equal to threshold with missing values."""
+    series_copy = series.copy()
+    series_copy[series_copy <= threshold] = numpy.nan  # in place
+    return series_copy
+
+
+def count_values(series, *, base, threshold):
+    """Counts values, including missing values, in series.
+
+    Rounds counts to the nearest base; then suppresses counts less than or equal to
+    threshold.
+    """
+    count = series.value_counts(dropna=False)
+    count = count.pipe(round_to_nearest, base).pipe(suppress, threshold)
+    count = count.sort_index(na_position="first")
+    return count
 
 
 def get_column_summaries(dataframe):
@@ -96,7 +123,7 @@ def get_column_summaries(dataframe):
             continue
 
         if is_boolean(series):
-            count = count_values(series)
+            count = count_values(series, threshold=5, base=5)
             percentage = count / count.sum() * 100
             summary = pandas.DataFrame({"Count": count, "Percentage": percentage})
             summary.index.name = "Column Value"
