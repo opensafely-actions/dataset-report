@@ -78,7 +78,7 @@ def get_table_summary(dataframe):
 
 
 def is_boolean(series):
-    """Does series contain boolean values?
+    """Does series contain only boolean values?
 
     Because series may have been read from an untyped file, such as a csv file, it may
     contain boolean values but may not have a boolean data type.
