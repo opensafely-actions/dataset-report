@@ -23,34 +23,20 @@ def test_get_name(path, name):
     assert dataset_report.get_name(path) == name
 
 
-def test_get_table_summary():
-    # arrange
-    dataframe = pandas.DataFrame(
-        {
-            "patient_id": pandas.Series([1, 2, 3, 4], dtype=int),
-            "is_registered": pandas.Series([1, 0, numpy.nan, numpy.nan], dtype=float),
-        },
+class TestIsEmpty:
+    def test_with_empty_series(self):
+        series = pandas.Series([numpy.nan, numpy.nan, numpy.nan], dtype=float)
+        assert dataset_report.is_empty(series)
+
+    @pytest.mark.parametrize(
+        "series",
+        [
+            pandas.Series([0, 1, 1], dtype=int),
+            pandas.Series([0, 1, numpy.nan], dtype=float),
+        ],
     )
-    # act
-    obs_table_summary = dataset_report.get_table_summary(dataframe)
-    # assert
-    del obs_table_summary["Size (MB)"]  # don't test
-    del obs_table_summary["Data Type"]  # don't test
-    exp_table_summary = pandas.DataFrame(
-        {
-            "Count of missing values": pandas.Series(
-                [0, 2],
-                index=dataframe.columns,
-                dtype=int,
-            ),
-            "Percentage of missing values": pandas.Series(
-                [0, 50],
-                index=dataframe.columns,
-                dtype=float,
-            ),
-        }
-    )
-    testing.assert_frame_equal(obs_table_summary, exp_table_summary)
+    def test_with_non_empty_series(self, series):
+        assert not dataset_report.is_empty(series)
 
 
 def test_count_values():

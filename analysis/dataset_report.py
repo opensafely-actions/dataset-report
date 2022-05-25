@@ -60,17 +60,19 @@ def read_dataframe(path):
     return dataframe
 
 
+def is_empty(series):
+    """Does series contain only missing values?"""
+    return series.isna().all()
+
+
 def get_table_summary(dataframe):
     memory_usage = dataframe.memory_usage(index=False)
     memory_usage = memory_usage / 1_000**2
-    count_na = len(dataframe) - dataframe.count()
-    percentage_na = count_na / len(dataframe) * 100
     return pandas.DataFrame(
         {
             "Size (MB)": memory_usage,
             "Data Type": dataframe.dtypes,
-            "Count of missing values": count_na,
-            "Percentage of missing values": percentage_na,
+            "Empty": dataframe.apply(is_empty),
         },
     )
 
