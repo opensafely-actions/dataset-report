@@ -4,6 +4,7 @@ import glob
 import pathlib
 
 import jinja2
+import numpy
 import pandas
 from pandas.api import types
 
@@ -59,23 +60,25 @@ def read_dataframe(path):
     return dataframe
 
 
+def is_empty(series):
+    """Does series contain only missing values?"""
+    return series.isna().all()
+
+
 def get_table_summary(dataframe):
     memory_usage = dataframe.memory_usage(index=False)
     memory_usage = memory_usage / 1_000**2
-    count_na = len(dataframe) - dataframe.count()
-    percentage_na = count_na / len(dataframe) * 100
     return pandas.DataFrame(
         {
             "Size (MB)": memory_usage,
             "Data Type": dataframe.dtypes,
-            "Count of missing values": count_na,
-            "Percentage of missing values": percentage_na,
+            "Empty": dataframe.apply(is_empty),
         },
     )
 
 
 def is_boolean(series):
-    """Does series contain boolean values?
+    """Does series contain only boolean values?
 
     Because series may have been read from an untyped file, such as a csv file, it may
     contain boolean values but may not have a boolean data type.
@@ -86,13 +89,43 @@ def is_boolean(series):
     return ((series == 0) | (series == 1)).all()
 
 
+def round_to_nearest(series, base):
+    """Rounds values in series to the nearest base."""
+    # ndigits=0 ensures the return value is a whole number, but with the same type as x
+    series_copy = series.apply(lambda x: base * round(x / base, ndigits=0))
+    try:
+        return series_copy.astype(int)
+    except ValueError:
+        # series contained nan
+        return series_copy
+
+
+def suppress(series, threshold):
+    """Replaces values in series less than or equal to threshold with missing values."""
+    series_copy = series.copy()
+    series_copy[series_copy <= threshold] = numpy.nan  # in place
+    return series_copy
+
+
+def count_values(series, *, base, threshold):
+    """Counts values, including missing values, in series.
+
+    Rounds counts to the nearest base; then suppresses counts less than or equal to
+    threshold.
+    """
+    count = series.value_counts(dropna=False)
+    count = count.pipe(round_to_nearest, base).pipe(suppress, threshold)
+    count = count.sort_index(na_position="first")
+    return count
+
+
 def get_column_summaries(dataframe):
     for name, series in dataframe.items():
         if name == "patient_id":
             continue
 
         if is_boolean(series):
-            count = series.value_counts(dropna=False)
+            count = count_values(series, threshold=5, base=5)
             percentage = count / count.sum() * 100
             summary = pandas.DataFrame({"Count": count, "Percentage": percentage})
             summary.index.name = "Column Value"
