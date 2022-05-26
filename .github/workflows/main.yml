@@ -36,8 +36,16 @@ jobs:
       - name: Run tests
         run: just test
 
-  tag-new-version:
+  test-integration:
     needs: [test]
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: opensafely-core/research-action@v2
+
+  tag-new-version:
+    needs: [test-integration]
     runs-on: ubuntu-latest
 
     steps:
