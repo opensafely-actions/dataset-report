@@ -1,7 +1,9 @@
 # dataset-report
 
 dataset-report generates a report for each dataset in an input directory.
-_Datasets_ are extracted by [cohort-extractor][].
+The report is a self-contained HTML file that has the same name as the dataset, but with the extension *html*.
+
+dataset-report's repository contains [this study](analysis/study_definition.py) that extracts a (dummy) dataset and generates [this report][3].
 
 ## Disclosure controls
 
@@ -18,7 +20,7 @@ The OpenSAFELY documentation has more information on [disclosure controls and sa
 
 In summary:
 
-* Use cohort-extractor to extract one or more datasets.
+* Use [cohort-extractor][] to extract one or more datasets.
 * Use dataset-report to generate a report for each dataset.
 
 Let's walk through an example _project.yaml_.
@@ -56,4 +58,5 @@ Please see [_DEVELOPERS.md_](DEVELOPERS.md).
 
 [1]: https://github.com/opensafely-actions/dataset-report/tags
 [2]: https://docs.opensafely.org/releasing-files/
+[3]: https://opensafely-actions.github.io/dataset-report/input.html
 [cohort-extractor]: https://docs.opensafely.org/actions-cohortextractor/
