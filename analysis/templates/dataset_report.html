@@ -5,6 +5,11 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Dataset Report</title>
+    <style>
+        section {
+            max-width: fit-content;
+        }
+    </style>
 </head>
 
 <body>
@@ -16,8 +21,10 @@
         <h2>Columns</h2>
         <p>Only columns that dataset-report can summarize are shown.</p>
         {% for column_name, column_summary in column_summaries %}
-        <h3>{{ column_name }}</h3>
-        <p>{{ column_summary }}</p>
+        <section>
+            <h3>{{ column_name }}</h3>
+            {{ column_summary }}
+        </section>
         {% endfor %}
     </article>
 </body>
