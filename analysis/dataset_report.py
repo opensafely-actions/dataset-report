@@ -110,13 +110,17 @@ def suppress(series, threshold):
     return series_copy
 
 
+def _count_values_from_internal_domain(series):
+    return series.value_counts(dropna=False)
+
+
 def count_values(series, *, base, threshold):
     """Counts values, including missing values, in series.
 
     Rounds counts to the nearest base; then suppresses counts less than or equal to
     threshold.
     """
-    count = series.value_counts(dropna=False)
+    count = _count_values_from_internal_domain(series)
     count = count.pipe(round_to_nearest, base).pipe(suppress, threshold)
     count = count.sort_index(na_position="first")
     return count
