@@ -114,13 +114,23 @@ def _count_values_from_internal_domain(series):
     return series.value_counts(dropna=False)
 
 
-def count_values(series, *, base, threshold):
-    """Counts values, including missing values, in series.
+def _count_values_from_external_domain(series, domain):
+    return pandas.Series({x: sum(series == x) for x in domain}, name=series.name)
+
+
+def count_values(series, domain=None, *, base, threshold):
+    """Counts values in series.
+
+    By default, counts values, including missing values, in series from the internal
+    domain of series. Otherwise, counts values in series from the external domain.
 
     Rounds counts to the nearest base; then suppresses counts less than or equal to
     threshold.
     """
-    count = _count_values_from_internal_domain(series)
+    if domain is None:
+        count = _count_values_from_internal_domain(series)
+    else:
+        count = _count_values_from_external_domain(series, domain)
     count = count.pipe(round_to_nearest, base).pipe(suppress, threshold)
     count = count.sort_index(na_position="first")
     return count
