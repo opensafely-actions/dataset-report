@@ -92,6 +92,15 @@ def is_bool_as_int(series):
         return False
 
 
+def select(dataframe, func):
+    """Returns a subset of dataframe's columns, based on func.
+
+    func is a filter: if it returns True, then the column is included; if it returns
+    False, then the column is excluded.
+    """
+    return dataframe.loc[:, [k for k, v in dataframe.items() if func(v)]]
+
+
 def round_to_nearest(series, base):
     """Rounds values in series to the nearest base."""
     # ndigits=0 ensures the return value is a whole number, but with the same type as x
