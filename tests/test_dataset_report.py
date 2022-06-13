@@ -98,7 +98,8 @@ def test_count_values():
     # assert
     exp_count = pandas.Series(
         [10, numpy.nan, numpy.nan],
-        index=[numpy.nan, 0, 1],  # value of nan should be sorted first
+        # value of nan should be sorted first
+        index=pandas.Index([numpy.nan, 0, 1], name="Column Value"),
         dtype=float,
     )
     testing.assert_series_equal(obs_count, exp_count)

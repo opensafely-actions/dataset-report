@@ -131,6 +131,7 @@ def count_values(series, domain=None, normalize=False, *, base, threshold):
         count = _count_values_from_internal_domain(series)
     else:
         count = _count_values_from_external_domain(series, domain)
+    count.index.name = "Column Value"
     count = count.pipe(round_to_nearest, base).pipe(suppress, threshold)
     if normalize:
         count = count / count.sum() * 100
