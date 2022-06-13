@@ -77,16 +77,15 @@ def get_table_summary(dataframe):
     )
 
 
-def is_boolean(series):
-    """Does series contain only boolean values?
-
-    Because series may have been read from an untyped file, such as a csv file, it may
-    contain boolean values but may not have a boolean data type.
-    """
-    if not (types.is_bool_dtype(series) or types.is_numeric_dtype(series)):
+def is_bool_as_int(series):
+    """Does series have bool values but an int dtype?"""
+    # numpy.nan will ensure an int series becomes a float series, so we need to check
+    # for both int and float
+    if not types.is_bool_dtype(series) and types.is_numeric_dtype(series):
+        series = series.dropna()
+        return ((series == 0) | (series == 1)).all()
+    else:
         return False
-    series = series.dropna()
-    return ((series == 0) | (series == 1)).all()
 
 
 def round_to_nearest(series, base):
@@ -124,7 +123,7 @@ def get_column_summaries(dataframe):
         if name == "patient_id":
             continue
 
-        if is_boolean(series):
+        if is_bool_as_int(series):
             count = count_values(series, threshold=5, base=5)
             percentage = count / count.sum() * 100
             summary = pandas.DataFrame({"Count": count, "Percentage": percentage})

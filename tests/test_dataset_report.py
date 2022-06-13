@@ -82,14 +82,13 @@ def test_get_column_summaries():
     testing.assert_frame_equal(obs_summary, exp_summary)
 
 
-class TestIsBoolean:
+class TestIsBoolAsInt:
     @pytest.mark.parametrize(
         "data,dtype",
         [
             ([0, 1], int),
             ([0, 1], float),
             ([numpy.nan, 1], float),
-            ([False, True], bool),
             # We have no way of knowing whether the following series should contain
             # boolean values when it only contains missing values. However, the
             # distinction doesn't matter in practice.
@@ -97,11 +96,12 @@ class TestIsBoolean:
         ],
     )
     def test_with_boolean_values(self, data, dtype):
-        assert dataset_report.is_boolean(pandas.Series(data, dtype=dtype))
+        assert dataset_report.is_bool_as_int(pandas.Series(data, dtype=dtype))
 
     @pytest.mark.parametrize(
         "data,dtype",
         [
+            ([False, True], bool),
             ([0, 2], int),
             ([0.1, 0.2], float),
             ([numpy.nan, 2], float),
@@ -116,4 +116,4 @@ class TestIsBoolean:
         ],
     )
     def test_with_non_boolean_values(self, data, dtype):
-        assert not dataset_report.is_boolean(pandas.Series(data, dtype=dtype))
+        assert not dataset_report.is_bool_as_int(pandas.Series(data, dtype=dtype))
