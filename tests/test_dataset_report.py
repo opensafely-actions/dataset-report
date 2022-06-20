@@ -56,30 +56,20 @@ def test_count_values():
     testing.assert_series_equal(obs_count, exp_count)
 
 
-def test_get_column_summaries():
+@pytest.mark.parametrize("dtype,num_column_summaries", [(int, 1), (bool, 0)])
+def test_get_column_summaries(dtype, num_column_summaries):
     # arrange
     dataframe = pandas.DataFrame(
         {
             # won't be suppressed
             "patient_id": pandas.Series(range(8), dtype=int),
-            "is_registered": pandas.Series([1] * 8, dtype=int),
+            "is_registered": pandas.Series([1] * 8, dtype=dtype),
         },
     )
     # act
     obs_column_summaries = list(dataset_report.get_column_summaries(dataframe))
     # assert
-    assert len(obs_column_summaries) == 1
-    obs_name, obs_summary = obs_column_summaries[0]
-    assert obs_name == "is_registered"
-    exp_index = pandas.Index([1], dtype=int, name="Column Value")
-    exp_summary = pandas.DataFrame(
-        {
-            # will be rounded
-            "Count": pandas.Series([10], index=exp_index, dtype=int),
-            "Percentage": pandas.Series([100], index=exp_index, dtype=float),
-        }
-    )
-    testing.assert_frame_equal(obs_summary, exp_summary)
+    assert len(obs_column_summaries) == num_column_summaries
 
 
 class TestIsBoolAsInt:
