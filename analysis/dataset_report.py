@@ -123,7 +123,7 @@ def get_column_summaries(dataframe):
         if name == "patient_id":
             continue
 
-        if is_bool_as_int(series):
+        if is_bool_as_int(series) or types.is_bool_dtype(series):
             count = count_values(series, threshold=5, base=5)
             percentage = count / count.sum() * 100
             summary = pandas.DataFrame({"Count": count, "Percentage": percentage})

@@ -56,7 +56,7 @@ def test_count_values():
     testing.assert_series_equal(obs_count, exp_count)
 
 
-@pytest.mark.parametrize("dtype,num_column_summaries", [(int, 1), (bool, 0)])
+@pytest.mark.parametrize("dtype,num_column_summaries", [(int, 1), (bool, 1)])
 def test_get_column_summaries(dtype, num_column_summaries):
     # arrange
     dataframe = pandas.DataFrame(
