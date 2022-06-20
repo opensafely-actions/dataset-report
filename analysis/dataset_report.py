@@ -45,15 +45,19 @@ def get_name(path):
 
 
 def read_dataframe(path):
-    ext = get_extension(path)
-    if ext == ".csv" or ext == ".csv.gz":
+    from_csv = False
+    if (ext := get_extension(path)) in [".csv", ".csv.gz"]:
+        from_csv = True
         dataframe = pandas.read_csv(path)
-    elif ext == ".feather":
+    elif ext in [".feather"]:
         dataframe = pandas.read_feather(path)
-    elif ext == ".dta" or ext == ".dta.gz":
+    elif ext in [".dta", ".dta.gz"]:
         dataframe = pandas.read_stata(path)
     else:
         raise ValueError(f"Cannot read '{ext}' files")
+    # It's useful to know whether a dataframe was read from a csv when summarizing the
+    # columns later.
+    dataframe.attrs["from_csv"] = from_csv
     # We give the column index a name now, because it's preserved when summaries are
     # computed later.
     dataframe.columns.name = "Column Name"

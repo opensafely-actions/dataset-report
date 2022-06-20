@@ -9,6 +9,32 @@ from pandas import testing
 from analysis import dataset_report
 
 
+@pytest.fixture
+def dataframe_writer(tmp_path):
+    """Returns a function that, when called, writes a dataframe to a temporary directory
+    and returns the path to the dataframe."""
+    # We use a function to return a function (a factory) to create a closure around
+    # tmp_path, and to keep the logic that decides which DataFrame.to_* method to call
+    # as simple as possible.
+    csv_exts = {".csv", ".csv.gz"}
+    feather_exts = {".feather"}
+    dta_exts = {".dta", ".dta.gz"}
+
+    def writer(ext):
+        assert ext in csv_exts | feather_exts | dta_exts
+        f_path = tmp_path / f"input{ext}"
+        dataframe = pandas.DataFrame({"patient_id": pandas.Series(range(5), dtype=int)})
+        if ext in [".csv", ".csv.gz"]:
+            dataframe.to_csv(f_path)
+        elif ext in [".feather"]:
+            dataframe.to_feather(f_path)
+        else:
+            dataframe.to_stata(f_path)
+        return f_path
+
+    return writer
+
+
 @pytest.mark.parametrize(
     "path,name",
     [
@@ -21,6 +47,22 @@ from analysis import dataset_report
 )
 def test_get_name(path, name):
     assert dataset_report.get_name(path) == name
+
+
+@pytest.mark.parametrize(
+    "ext,from_csv",
+    [
+        (".csv", True),
+        (".csv.gz", True),
+        (".feather", False),
+        (".dta", False),
+        (".dta.gz", False),
+    ],
+)
+def test_read_dataframe(dataframe_writer, ext, from_csv):
+    f_path = dataframe_writer(ext)
+    dataframe = dataset_report.read_dataframe(f_path)
+    assert dataframe.attrs["from_csv"] is from_csv
 
 
 class TestIsEmpty:
