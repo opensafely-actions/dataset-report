@@ -104,8 +104,15 @@ def test_count_values():
     testing.assert_series_equal(obs_count, exp_count)
 
 
-@pytest.mark.parametrize("dtype,num_column_summaries", [(int, 1), (bool, 1)])
-def test_get_column_summaries(dtype, num_column_summaries):
+@pytest.mark.parametrize(
+    "from_csv,dtype,num_column_summaries",
+    [
+        (True, int, 1),  # bool-as-int
+        (False, bool, 1),  # bool-as-bool
+        (False, int, 0),  # int
+    ],
+)
+def test_get_column_summaries(from_csv, dtype, num_column_summaries):
     # arrange
     dataframe = pandas.DataFrame(
         {
@@ -114,6 +121,7 @@ def test_get_column_summaries(dtype, num_column_summaries):
             "is_registered": pandas.Series([1] * 8, dtype=dtype),
         },
     )
+    dataframe.attrs["from_csv"] = from_csv
     # act
     obs_column_summaries = list(dataset_report.get_column_summaries(dataframe))
     # assert
