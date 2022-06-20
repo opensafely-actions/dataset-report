@@ -148,26 +148,28 @@ def count_values(series, domain=None, normalize=False, *, base, threshold):
     return count
 
 
-def get_column_summaries(dataframe):
-    for name, series in dataframe.items():
-        if name == "patient_id":
-            continue
+def get_counts(dataframe, counter):
+    counts = dataframe.apply(counter)
+    counts["Statistic"] = "Count"
+    counts = counts.set_index("Statistic", append=True)
+    counts.index = counts.index.reorder_levels([1, 0])
 
-        is_csv_bool = dataframe.attrs["from_csv"] and is_bool_as_int(series)
-        is_bool = types.is_bool_dtype(series)
-        if is_csv_bool or is_bool:
-            count = count_values(series, threshold=5, base=5)
-            percentage = count / count.sum() * 100
-            summary = pandas.DataFrame({"Count": count, "Percentage": percentage})
-            summary.index.name = "Column Value"
-            yield name, summary
+    percentages = dataframe.apply(counter, normalize=True)
+    percentages["Statistic"] = "Percentage"
+    percentages = percentages.set_index("Statistic", append=True)
+    percentages.index = percentages.index.reorder_levels([1, 0])
+
+    summary = pandas.concat([counts, percentages])
+    summary = summary.fillna(0)
+    summary = summary.transpose()
+    return summary
 
 
-def get_dataset_report(input_file, table_summary, column_summaries):
+def get_dataset_report(input_file, table_summary, dtype_summaries):
     return TEMPLATE.render(
         input_file=input_file,
         table_summary=table_summary,
-        column_summaries=column_summaries,
+        dtype_summaries=dtype_summaries,
     )
 
 
@@ -181,13 +183,39 @@ def main():
     input_files = args.input_files
     output_dir = args.output_dir
 
+    # Repeatedly passing base and threshold is error-prone, so we create a partial
+    # object to pass them once.
+    root_count_values = functools.partial(count_values, base=5, threshold=5)
+
+    def summarize_bool_as_int(input_dataframe, dtype_summaries):
+        if not input_dataframe.attrs["from_csv"]:
+            return
+
+        bool_as_int_dataframe = select(input_dataframe, is_bool_as_int)
+        if bool_as_int_dataframe.empty:
+            return
+
+        counter = functools.partial(root_count_values, domain=[0, 1, numpy.nan])
+        summary = get_counts(bool_as_int_dataframe, counter)
+        dtype_summaries.append(("Bool as int", summary))
+
+    def summarize_bool(input_dataframe, dtype_summaries):
+        bool_dataframe = select(input_dataframe, types.is_bool_dtype)
+        if bool_dataframe.empty:
+            return
+
+        counter = functools.partial(root_count_values, domain=[False, True, numpy.nan])
+        summary = get_counts(bool_dataframe, counter)
+        dtype_summaries.append(("Bool", summary))
+
     for input_file in input_files:
         input_dataframe = read_dataframe(input_file)
         table_summary = get_table_summary(input_dataframe)
-        column_summaries = get_column_summaries(input_dataframe)
-
+        dtype_summaries = []
+        summarize_bool_as_int(input_dataframe, dtype_summaries)
+        summarize_bool(input_dataframe, dtype_summaries)
         output_file = output_dir / f"{get_name(input_file)}.html"
-        dataset_report = get_dataset_report(input_file, table_summary, column_summaries)
+        dataset_report = get_dataset_report(input_file, table_summary, dtype_summaries)
         write_dataset_report(output_file, dataset_report)
 
 

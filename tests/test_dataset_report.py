@@ -105,30 +105,6 @@ def test_count_values():
     testing.assert_series_equal(obs_count, exp_count)
 
 
-@pytest.mark.parametrize(
-    "from_csv,dtype,num_column_summaries",
-    [
-        (True, int, 1),  # bool-as-int
-        (False, bool, 1),  # bool-as-bool
-        (False, int, 0),  # int
-    ],
-)
-def test_get_column_summaries(from_csv, dtype, num_column_summaries):
-    # arrange
-    dataframe = pandas.DataFrame(
-        {
-            # won't be suppressed
-            "patient_id": pandas.Series(range(8), dtype=int),
-            "is_registered": pandas.Series([1] * 8, dtype=dtype),
-        },
-    )
-    dataframe.attrs["from_csv"] = from_csv
-    # act
-    obs_column_summaries = list(dataset_report.get_column_summaries(dataframe))
-    # assert
-    assert len(obs_column_summaries) == num_column_summaries
-
-
 class TestIsBoolAsInt:
     @pytest.mark.parametrize(
         "data,dtype",
