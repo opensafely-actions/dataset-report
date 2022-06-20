@@ -64,6 +64,7 @@ class TestReadDataframe:
         f_path = dataframe_writer(ext)
         dataframe = dataset_report.read_dataframe(f_path)
         assert dataframe.attrs["from_csv"] is from_csv
+        assert dataframe.columns.name == "Column Name"
 
     def test_read_unsupported_file_type(self):
         with pytest.raises(ValueError):
