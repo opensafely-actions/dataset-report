@@ -49,20 +49,25 @@ def test_get_name(path, name):
     assert dataset_report.get_name(path) == name
 
 
-@pytest.mark.parametrize(
-    "ext,from_csv",
-    [
-        (".csv", True),
-        (".csv.gz", True),
-        (".feather", False),
-        (".dta", False),
-        (".dta.gz", False),
-    ],
-)
-def test_read_dataframe(dataframe_writer, ext, from_csv):
-    f_path = dataframe_writer(ext)
-    dataframe = dataset_report.read_dataframe(f_path)
-    assert dataframe.attrs["from_csv"] is from_csv
+class TestReadDataframe:
+    @pytest.mark.parametrize(
+        "ext,from_csv",
+        [
+            (".csv", True),
+            (".csv.gz", True),
+            (".feather", False),
+            (".dta", False),
+            (".dta.gz", False),
+        ],
+    )
+    def test_read_supported_file_type(self, dataframe_writer, ext, from_csv):
+        f_path = dataframe_writer(ext)
+        dataframe = dataset_report.read_dataframe(f_path)
+        assert dataframe.attrs["from_csv"] is from_csv
+
+    def test_read_unsupported_file_type(self):
+        with pytest.raises(ValueError):
+            dataset_report.read_dataframe(pathlib.Path("input.xlsx"))
 
 
 class TestIsEmpty:
