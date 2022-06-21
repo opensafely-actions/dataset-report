@@ -9,6 +9,32 @@ from pandas import testing
 from analysis import dataset_report
 
 
+@pytest.fixture
+def dataframe_writer(tmp_path):
+    """Returns a function that, when called, writes a dataframe to a temporary directory
+    and returns the path to the dataframe."""
+    # We use a function to return a function (a factory) to create a closure around
+    # tmp_path, and to keep the logic that decides which DataFrame.to_* method to call
+    # as simple as possible.
+    csv_exts = {".csv", ".csv.gz"}
+    feather_exts = {".feather"}
+    dta_exts = {".dta", ".dta.gz"}
+
+    def writer(ext):
+        assert ext in csv_exts | feather_exts | dta_exts
+        f_path = tmp_path / f"input{ext}"
+        dataframe = pandas.DataFrame({"patient_id": pandas.Series(range(5), dtype=int)})
+        if ext in [".csv", ".csv.gz"]:
+            dataframe.to_csv(f_path)
+        elif ext in [".feather"]:
+            dataframe.to_feather(f_path)
+        else:
+            dataframe.to_stata(f_path)
+        return f_path
+
+    return writer
+
+
 @pytest.mark.parametrize(
     "path,name",
     [
@@ -21,6 +47,28 @@ from analysis import dataset_report
 )
 def test_get_name(path, name):
     assert dataset_report.get_name(path) == name
+
+
+class TestReadDataframe:
+    @pytest.mark.parametrize(
+        "ext,from_csv",
+        [
+            (".csv", True),
+            (".csv.gz", True),
+            (".feather", False),
+            (".dta", False),
+            (".dta.gz", False),
+        ],
+    )
+    def test_read_supported_file_type(self, dataframe_writer, ext, from_csv):
+        f_path = dataframe_writer(ext)
+        dataframe = dataset_report.read_dataframe(f_path)
+        assert dataframe.attrs["from_csv"] is from_csv
+        assert dataframe.columns.name == "Column Name"
+
+    def test_read_unsupported_file_type(self):
+        with pytest.raises(ValueError):
+            dataset_report.read_dataframe(pathlib.Path("input.xlsx"))
 
 
 class TestIsEmpty:
@@ -56,40 +104,37 @@ def test_count_values():
     testing.assert_series_equal(obs_count, exp_count)
 
 
-def test_get_column_summaries():
+@pytest.mark.parametrize(
+    "from_csv,dtype,num_column_summaries",
+    [
+        (True, int, 1),  # bool-as-int
+        (False, bool, 1),  # bool-as-bool
+        (False, int, 0),  # int
+    ],
+)
+def test_get_column_summaries(from_csv, dtype, num_column_summaries):
     # arrange
     dataframe = pandas.DataFrame(
         {
             # won't be suppressed
             "patient_id": pandas.Series(range(8), dtype=int),
-            "is_registered": pandas.Series([1] * 8, dtype=int),
+            "is_registered": pandas.Series([1] * 8, dtype=dtype),
         },
     )
+    dataframe.attrs["from_csv"] = from_csv
     # act
     obs_column_summaries = list(dataset_report.get_column_summaries(dataframe))
     # assert
-    assert len(obs_column_summaries) == 1
-    obs_name, obs_summary = obs_column_summaries[0]
-    assert obs_name == "is_registered"
-    exp_index = pandas.Index([1], dtype=int, name="Column Value")
-    exp_summary = pandas.DataFrame(
-        {
-            # will be rounded
-            "Count": pandas.Series([10], index=exp_index, dtype=int),
-            "Percentage": pandas.Series([100], index=exp_index, dtype=float),
-        }
-    )
-    testing.assert_frame_equal(obs_summary, exp_summary)
+    assert len(obs_column_summaries) == num_column_summaries
 
 
-class TestIsBoolean:
+class TestIsBoolAsInt:
     @pytest.mark.parametrize(
         "data,dtype",
         [
             ([0, 1], int),
             ([0, 1], float),
             ([numpy.nan, 1], float),
-            ([False, True], bool),
             # We have no way of knowing whether the following series should contain
             # boolean values when it only contains missing values. However, the
             # distinction doesn't matter in practice.
@@ -97,11 +142,12 @@ class TestIsBoolean:
         ],
     )
     def test_with_boolean_values(self, data, dtype):
-        assert dataset_report.is_boolean(pandas.Series(data, dtype=dtype))
+        assert dataset_report.is_bool_as_int(pandas.Series(data, dtype=dtype))
 
     @pytest.mark.parametrize(
         "data,dtype",
         [
+            ([False, True], bool),
             ([0, 2], int),
             ([0.1, 0.2], float),
             ([numpy.nan, 2], float),
@@ -116,4 +162,4 @@ class TestIsBoolean:
         ],
     )
     def test_with_non_boolean_values(self, data, dtype):
-        assert not dataset_report.is_boolean(pandas.Series(data, dtype=dtype))
+        assert not dataset_report.is_bool_as_int(pandas.Series(data, dtype=dtype))

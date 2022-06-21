@@ -45,15 +45,19 @@ def get_name(path):
 
 
 def read_dataframe(path):
-    ext = get_extension(path)
-    if ext == ".csv" or ext == ".csv.gz":
+    from_csv = False
+    if (ext := get_extension(path)) in [".csv", ".csv.gz"]:
+        from_csv = True
         dataframe = pandas.read_csv(path)
-    elif ext == ".feather":
+    elif ext in [".feather"]:
         dataframe = pandas.read_feather(path)
-    elif ext == ".dta" or ext == ".dta.gz":
+    elif ext in [".dta", ".dta.gz"]:
         dataframe = pandas.read_stata(path)
     else:
         raise ValueError(f"Cannot read '{ext}' files")
+    # It's useful to know whether a dataframe was read from a csv when summarizing the
+    # columns later.
+    dataframe.attrs["from_csv"] = from_csv
     # We give the column index a name now, because it's preserved when summaries are
     # computed later.
     dataframe.columns.name = "Column Name"
@@ -77,16 +81,15 @@ def get_table_summary(dataframe):
     )
 
 
-def is_boolean(series):
-    """Does series contain only boolean values?
-
-    Because series may have been read from an untyped file, such as a csv file, it may
-    contain boolean values but may not have a boolean data type.
-    """
-    if not (types.is_bool_dtype(series) or types.is_numeric_dtype(series)):
+def is_bool_as_int(series):
+    """Does series have bool values but an int dtype?"""
+    # numpy.nan will ensure an int series becomes a float series, so we need to check
+    # for both int and float
+    if not types.is_bool_dtype(series) and types.is_numeric_dtype(series):
+        series = series.dropna()
+        return ((series == 0) | (series == 1)).all()
+    else:
         return False
-    series = series.dropna()
-    return ((series == 0) | (series == 1)).all()
 
 
 def round_to_nearest(series, base):
@@ -124,7 +127,9 @@ def get_column_summaries(dataframe):
         if name == "patient_id":
             continue
 
-        if is_boolean(series):
+        is_csv_bool = dataframe.attrs["from_csv"] and is_bool_as_int(series)
+        is_bool = types.is_bool_dtype(series)
+        if is_csv_bool or is_bool:
             count = count_values(series, threshold=5, base=5)
             percentage = count / count.sum() * 100
             summary = pandas.DataFrame({"Count": count, "Percentage": percentage})
