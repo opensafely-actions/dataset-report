@@ -6,6 +6,8 @@ on:
     branches:
       - main
 
+concurrency: tag-new-version-group
+
 jobs:
   check:
     runs-on: ubuntu-latest
