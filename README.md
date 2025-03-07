@@ -56,7 +56,17 @@ generate_dataset_report:
 
 Please see [_DEVELOPERS.md_](DEVELOPERS.md).
 
+## A note on versions
+
+Because of a bug in the GitHub workflow that tagged versions,
+some versions of dataset-report are ordered incorrectly:
+a later version precedes an earlier version,
+when versions are sorted by the dates their associated commits were created.
+For example, v0.0.19 (later) precedes v0.0.17 (earlier).
+The bug was fixed in [#111][].
+
 [1]: https://github.com/opensafely-actions/dataset-report/tags
 [2]: https://docs.opensafely.org/releasing-files/
 [3]: https://opensafely-actions.github.io/dataset-report/input.html
+[#111]: https://github.com/opensafely-actions/dataset-report/pull/111
 [cohort-extractor]: https://docs.opensafely.org/actions-cohortextractor/
