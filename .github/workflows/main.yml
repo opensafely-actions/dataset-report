@@ -2,11 +2,10 @@
 name: CI
 
 on:
-  push:
+  pull_request:
     branches:
       - main
-
-concurrency: tag-new-version-group
+  workflow_call:
 
 jobs:
   check:
@@ -46,14 +45,3 @@ jobs:
       - uses: actions/checkout@v2
       - uses: opensafely-core/research-action@v2
 
-  tag-new-version:
-    needs: [test-integration]
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: Tag new version
-        uses: mathieudutour/github-tag-action@d745f2e74aaf1ee82e747b181f7a0967978abee0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          create_annotated_tag: true
