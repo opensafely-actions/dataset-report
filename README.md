@@ -1,3 +1,11 @@
+-------------------------------------
+
+# :warning: DEPRECATED :warning:
+
+This reusable action has been deprecated and is no longer maintained.
+
+-------------------------------------
+
 # dataset-report
 
 dataset-report generates a report for each dataset in an input directory.
